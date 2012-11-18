@@ -94,6 +94,8 @@ void loop() {
     psensor.startMeas(BMP085::PRES);
     loseSomeTime(32);
     int32_t praw = psensor.getResult(BMP085::PRES);
+    Serial.println(' ');
+    Serial.println(praw);
     
     struct { int16_t temp; int32_t pres; } payload;
     psensor.calculate(payload.temp, payload.pres);
