@@ -1,4 +1,4 @@
-// New version of the Room Node, derived from rooms.pde
+// New version of the Room Node, derived from rooms.pde 
 // 2010-10-19 <jcw@equi4.com> http://opensource.org/licenses/mit-license.php
 // $Id: roomNode.pde 7503 2011-04-07 10:41:06Z jcw $
 
@@ -27,9 +27,6 @@
 #define SHT11_PORT4  4   // defined  SHT11 ports
 
 #define MEASURE_PERIOD  20 // how often to measure, in tenths of seconds -----ORIG 600
-#define RETRY_PERIOD    10  // how soon to retry if ACK didn't come in
-#define RETRY_LIMIT     1   // maximum number of times to retry -----ORIG 5
-#define ACK_TIME        10  // number of milliseconds to wait for an ack
 #define REPORT_EVERY    1   // report every N measurement cycles  -----ORIG 5
 
 // set the sync mode to 2 if the fuses are still the Arduino default
@@ -70,24 +67,10 @@ static void shtDelay () {
     Sleepy::loseSomeTime(32); // must wait at least 20 ms
 }
 
-// wait a few milliseconds for proper ACK to me, return true if indeed received
-static byte waitForAck() {
-    MilliTimer ackTimer;
-    while (!ackTimer.poll(ACK_TIME)) {
-        if (rf12_recvDone() && rf12_crc == 0 &&
-                // see http://talk.jeelabs.net/topic/811#post-4712
-                rf12_hdr == (RF12_HDR_DST | RF12_HDR_CTL | myNodeID))
-            return 1;
-        set_sleep_mode(SLEEP_MODE_IDLE);
-        sleep_mode();
-    }
-    return 0;
-}
-
 // readout all the sensors and other values
 static void doMeasure() {
-  // special case to init running avg
-  byte firstTime = payload.humi[0] = payload.humi[1] = payload.humi[2] = payload.humi[3]== 0; 
+    // special case to init running avg
+    byte firstTime = payload.humi[0] = payload.humi[1] = payload.humi[2] = payload.humi[3]== 0; 
     
     payload.lobat = rf12_lowbat();
     float h, t;
