@@ -57,7 +57,7 @@ void setup()
   rf12_initialize(22, RF12_868MHZ, 212); 
   
   // Initialize gas counter
-  payload.gasCounter = 121290;
+  payload.gasCounter = 134864;
   
   Serial.println("\n[Gas Meter with Compass and Thermo couple]");
   state = ACK_LOW_STATE;  
