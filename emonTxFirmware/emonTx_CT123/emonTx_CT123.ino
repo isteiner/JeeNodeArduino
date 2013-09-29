@@ -24,6 +24,20 @@
 	- emontx_lib.ino
  
 */
+
+/*Recommended node ID allocation
+------------------------------------------------------------------------------------------------------------
+-ID-	-Node Type- 
+0	- Special allocation in JeeLib RFM12 driver - reserved for OOK use
+1-4     - Control nodes 
+5-10	- Energy monitoring nodes
+11-14	--Un-assigned --
+15-16	- Base Station & logging nodes
+17-30	- Environmental sensing nodes (temperature humidity etc.)
+31	- Special allocation in JeeLib RFM12 driver - Node31 can communicate with nodes on any network group
+-------------------------------------------------------------------------------------------------------------
+*/
+
 #define FILTERSETTLETIME 5000                                           //  Time (ms) to allow the filters to settle before sending data
 
 const int CT1 = 1; 
@@ -80,17 +94,17 @@ void setup()
 void loop() 
 { 
   if (CT1) {
-    emontx.power1 = ct1.calcIrms(1480) * 240.0;                         //ct.calcIrms(number of wavelengths sample)*AC RMS voltage
+    emontx.power1 = ct1.calcIrms(1480) * 1000; //240.0;                         //ct.calcIrms(number of wavelengths sample)*AC RMS voltage
     Serial.print(emontx.power1);                                         
   }
   
   if (CT2) {
-    emontx.power2 = ct2.calcIrms(1480) * 240.0;
+    emontx.power2 = ct2.calcIrms(1480) * 1000; 240.0;
     Serial.print(" "); Serial.print(emontx.power2);
   } 
 
   if (CT3) {
-    emontx.power3 = ct3.calcIrms(1480) * 240.0;
+    emontx.power3 = ct3.calcIrms(1480) * 1000; 240.0;
     Serial.print(" "); Serial.print(emontx.power3);
   } 
   
