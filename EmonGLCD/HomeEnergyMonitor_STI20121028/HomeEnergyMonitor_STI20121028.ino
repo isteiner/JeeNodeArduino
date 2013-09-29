@@ -139,7 +139,7 @@ void loop()
       Serial.print(" ");      
       Serial.print(emontx.Vrms); 
       Serial.println();    
-      
+
       if (node_id == 15)
       {
         RTC.adjust(DateTime(2012, 1, 1, rf12_data[1], rf12_data[2], rf12_data[3]));
@@ -174,14 +174,35 @@ void loop()
     else if (ScreenNumber==1)
     {
       glcd.clear();
-      sprintf(outBuf, "L1: %4d.%d A", emontx.power1/240, emontx.power1%10);
-      glcd.drawString(0,0, outBuf);
-      sprintf(outBuf, "L2: %4d.%d A", emontx.power2/240, emontx.power2%10);
-      glcd.drawString(0,16, outBuf);  
-      sprintf(outBuf, "L3: %4d.%d A", emontx.power3/240, emontx.power3%10);
-      glcd.drawString(0,32, outBuf);    
+
+      dtostrf((float)emontx.power1/240,0,1,outBuf); 
+      strcat(outBuf," A");
+      glcd.drawString(0,0, "L1:");
+      glcd.drawString(50,0, outBuf);          
+      
+      dtostrf((float)emontx.power2/240,0,1,outBuf); 
+      strcat(outBuf," A");
+      glcd.drawString(0,16, "L2:");
+      glcd.drawString(50,16, outBuf);                
+      
+      dtostrf((float)emontx.power3/240,0,1,outBuf); 
+      strcat(outBuf," A");
+      glcd.drawString(0,32, "L3:");
+      glcd.drawString(50,32, outBuf);                
+      
+//      sprintf(outBuf, "L1: %5d mA", (long int)emontx.power1*100/24); 
+//      glcd.drawString(0,0, outBuf);
+      
       sprintf(outBuf, "Total:   %4d W", cval_use);
-      glcd.drawString(0,48, outBuf);          
+      glcd.drawString(0,48, outBuf); 
+      
+      Serial.print((float)emontx.power1/240);
+      Serial.print(" ");
+      Serial.print((float)emontx.power2/240);
+      Serial.print(" ");      
+      Serial.print((float)emontx.power3/240);      
+      Serial.println();         
+            
       //glcd.drawString_P(0,0, PSTR("Phase-L1:"));
       //glcd.drawString_P(0,16, PSTR("Phase-L2:"));
       //glcd.drawString_P(0,32, PSTR("Phase-L3:"));
