@@ -81,23 +81,23 @@ void loop()
 { 
   if (CT1) {
     emontx.power1 = ct1.calcIrms(1480) * 240.0;                         //ct.calcIrms(number of wavelengths sample)*AC RMS voltage
-    //Serial.print(emontx.power1);                                         
+    Serial.print(emontx.power1);                                         
   }
   
   if (CT2) {
     emontx.power2 = ct2.calcIrms(1480) * 240.0;
-    //Serial.print(" "); Serial.print(emontx.power2);
+    Serial.print(" "); Serial.print(emontx.power2);
   } 
 
   if (CT3) {
     emontx.power3 = ct3.calcIrms(1480) * 240.0;
-    //Serial.print(" "); Serial.print(emontx.power3);
+    Serial.print(" "); Serial.print(emontx.power3);
   } 
   
   emontx.battery = ct1.readVcc();                                      //read emonTx battey (supply voltage)
   
-  //Serial.print(" "); Serial.print(emontx.battery);
-  //Serial.println(); 
+  Serial.print(" "); Serial.print(emontx.battery);
+  Serial.println(); 
   delay(100);
 
   // because millis() returns to zero after 50 days ! 
