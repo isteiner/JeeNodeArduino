@@ -496,16 +496,16 @@ void setup () {
     lcd.print("Gas Meter 20141207");   
     delay(2000);
 
-    // Initialize gas counter per 30.11.2014
-    gas.counter = 250326;
+    // Initialize gas counter per 7.12.2014
+    gas.counter = 250497;
  
-    gas.cumulThisHour = 0;
-    gas.cumulPrevHour = 0;    
-    gas.cumulThisDay = 0;
+    gas.cumulThisHour = 5;
+    gas.cumulPrevHour = 10;    
+    gas.cumulThisDay = 168;
     gas.cumulPrevDay = 150;
-    gas.cumulThisMonth = 944;
+    gas.cumulThisMonth = 1112;
     gas.cumulPrevMonth = 3864;    
-    gas.cumulThisYear = 24508;   
+    gas.cumulThisYear = 24676;   
     gas.cumulPrevYear = 36100; 
 
     now = RTC.now();
@@ -544,7 +544,7 @@ void setup () {
       // print and set the current gas counter value in second line
       SetGasCounter(gas.counter,1);          
     }
-    locked = 1;  
+    locked = 1;    
     prevBacklightTime = millis();  
 }
 
@@ -760,13 +760,59 @@ void loop ()
       case LCD_PRICE: {
         lcd.setCursor(0, 0);    
         lcd.print("Cena m3: ");
+        lcd.setCursor(10, 0);
         lcd.print((float)gas.priceVarM3,4);
         lcd.print(" EUR"); 
         
-        lcd.setCursor(0, 1);    
+        lcd.setCursor(0, 2);    
         lcd.print("Fiksni st: ");
+        lcd.setCursor(11, 2);
         lcd.print((float)gas.priceFixMonth,2);
-        lcd.print(" EUR");         
+        lcd.print(" EUR");   
+ 
+        if (exp_read() & SET & !locked)   //setup prices with keys: SET, PLUS, MINUS
+        {
+          lcd.setCursor(10, 0);
+          lcd.blink();       
+          nokey();
+             while (!(exp_read() & SET))    // set variabile gas price
+             {
+              if (exp_read() & PLUS) 
+              {
+                gas.priceVarM3 += 0.0001;
+                lcd.setCursor(10, 0);
+                lcd.print((float)gas.priceVarM3,4);
+                delay(1000);
+              }
+              if (exp_read() & MINUS) 
+              {
+                gas.priceVarM3 -= 0.0001;
+                lcd.setCursor(10, 0);
+                lcd.print((float)gas.priceVarM3,4);
+                delay(1000);
+              }  
+             }
+             nokey();
+             lcd.setCursor(11, 2);
+             while (!(exp_read() & SET))    // set fix gas price
+             {
+              if (exp_read() & PLUS) 
+              {
+                gas.priceFixMonth += 0.01;
+                lcd.setCursor(11, 2);
+                lcd.print((float)gas.priceFixMonth,2);
+                delay(1000);
+              }
+              if (exp_read() & MINUS) 
+              {
+                gas.priceFixMonth -= 0.01;
+                lcd.setCursor(11, 2);
+                lcd.print((float)gas.priceFixMonth,2);
+                delay(1000);
+              }  
+            }           
+           lcd.noBlink();
+        }
         }
         break;   
 
@@ -780,7 +826,7 @@ void loop ()
           
         lcd.setCursor(0, 0);    
         lcd.print("Prog.danes: ");
-        lcd.print(((float)gas.cumulThisDay)*MINUTES_PER_DAY/todayActualMinutes/10,0);
+        lcd.print(((float)gas.cumulThisDay)*MINUTES_PER_DAY/todayActualMinutes*0.7/10,0);  // use factor 0.7 = 16/24 because heating is not running the complete day (6h-22h)
         lcd.print(" m3");        
         
         lcd.setCursor(0, 1);    
