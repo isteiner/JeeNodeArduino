@@ -1,15 +1,23 @@
-// Inteligentno zaščitno pregrinjalo IZP - Zvezda SPT
-// Programmed by Igor Steiner, Matej Lenarčič (INEA d.o.o.)
+// New version of the Room Node, derived from rooms.pde
+// 2010-10-19 <jcw@equi4.com> http://opensource.org/licenses/mit-license.php
+// $Id: roomNode.pde 7503 2011-04-07 10:41:06Z jcw $
 
-// Modified for measurement with 4 roomNode sensors, based on JeeLabs RoomNode 
+// see http://jeelabs.org/2010/10/20/new-roomnode-code/
+// and http://jeelabs.org/2010/10/21/reporting-motion/
+
+// The complexity in the code below comes from the fact that newly detected PIR
+// motion needs to be reported as soon as possible, but only once, while all the
+// other sensor values are being collected and averaged in a more regular cycle.
+
+// Modified for measurement with 4 roomNode sensors and without LDR and PIR
+// Igor Steiner  2012-12-26
+// modified 1.1.2015 with new rf12_sendNow and rf12_sendWait
 
 #include <Ports.h>
 #include <PortsSHT11.h>
 #include <RF12.h>
 #include <avr/sleep.h>
 #include <util/atomic.h>
-
-#define ALARM_TEMP  500  // alarm temperature is 50.0 deg.C
 
 #define SERIAL  1   // set to 1 to also report readings on the serial port
 #define DEBUG   1   // set to 1 to display each loop() run and PIR trigger -----ORIG 0
@@ -38,15 +46,6 @@ Scheduler scheduler (schedbuf, TASK_END);
 static byte reportCount;    // count up until next report, i.e. packet send
 static byte myNodeID;       // node ID used for this unit
 
-// set pin numbers:
-const int ledPin =  8;      // the number of the LED pin
-const int vibePin = 9;      // the number of the vibration pin
-
-int ledState = LOW;             // ledState used to set the LED
-int vibeState = LOW;
-long previousMillis = 0;        // will store last time LED was updated
-long interval = 1000;           // interval at which to blink (milliseconds)
-
 // This defines the structure of the packets which get sent out by wireless:
 
 struct {
@@ -73,7 +72,6 @@ static void shtDelay () {
 static void doMeasure() {
     // special case to init running avg
     byte firstTime = payload.humi[0] = payload.humi[1] = payload.humi[2] = payload.humi[3]== 0; 
-    byte alarm = LOW;
     
     payload.lobat = rf12_lowbat();
     float h, t;
@@ -105,20 +103,20 @@ static void doMeasure() {
     sht11_P4.calculate(h, t);
     payload.humi[3] = h + 0.5;
     payload.temp[3] = 10 * t + 0.5;
-    
-    for (byte i=0; i<4; i++) {
-      if (payload.temp[i] > ALARM_TEMP)  alarm = HIGH;
-    }  
-    checkAlarm(alarm);    
 }
 
 // periodic report, i.e. send out a packet and optionally report on serial port
 static void doReport() {
     payload.count++;
     rf12_sleep(RF12_WAKEUP);
-    while (!rf12_canSend())
+    // spremenjeno 1.1.2015 z novo JeeLab knjižnico
+/*    while (!rf12_canSend())
         rf12_recvDone();
     rf12_sendStart(0, &payload, sizeof payload, RADIO_SYNC_MODE);
+*/
+    rf12_sendNow(0, &payload, sizeof payload);
+    rf12_sendWait(RADIO_SYNC_MODE);
+    // konec spremembe
     rf12_sleep(RF12_SLEEP);
 
     #if SERIAL
@@ -145,32 +143,6 @@ static void doReport() {
     #endif
 }
 
-void blink (byte pin) {
-    for (byte i = 0; i < 6; ++i) {
-        delay(100);
-        digitalWrite(pin, !digitalRead(pin));
-    }
-}
-
-void checkAlarm (byte alarmSet) {
-  unsigned long currentMillis = millis();
-   
-  if(currentMillis - previousMillis > interval) {
-    // save the last time you blinked the LED 
-    previousMillis = currentMillis;   
-
-    // if the LED is off turn it on and vice-versa:
-    if ((ledState == LOW)&& alarmSet) {
-      ledState = vibeState = HIGH;
-      Serial.println("ALARM");
-    }  
-    else
-      ledState = vibeState = LOW;
-  }
-  // set the LED with the ledState of the variable:
-  digitalWrite(ledPin, ledState);
-  digitalWrite(vibePin, vibeState);         
-}
 
 void setup () {
     #if SERIAL || DEBUG
@@ -188,10 +160,6 @@ void setup () {
     
     reportCount = REPORT_EVERY;     // report right away for easy debugging
     scheduler.timer(MEASURE, 0);    // start the measurement loop going
-    
-    // set the Alarm digital pin as output:
-    pinMode(ledPin, OUTPUT);      
-    pinMode(vibePin, OUTPUT);    
 }
 
 void loop () {

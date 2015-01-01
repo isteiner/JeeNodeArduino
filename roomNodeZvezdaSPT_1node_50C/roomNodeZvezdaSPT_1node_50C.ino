@@ -1,7 +1,7 @@
 // Inteligentno zaščitno pregrinjalo IZP - Zvezda SPT
 // Programmed by Igor Steiner, Matej Lenarčič (INEA d.o.o.)
-
 // Modified for measurement with 4 roomNode sensors, based on JeeLabs RoomNode 
+// modified 1.1.2015 with new rf12_sendNow and rf12_sendWait
 
 #include <Ports.h>
 #include <PortsSHT11.h>
@@ -116,9 +116,14 @@ static void doMeasure() {
 static void doReport() {
     payload.count++;
     rf12_sleep(RF12_WAKEUP);
-    while (!rf12_canSend())
+    // spremenjeno 1.1.2015 z novo JeeLab knjižnico
+/*    while (!rf12_canSend())
         rf12_recvDone();
     rf12_sendStart(0, &payload, sizeof payload, RADIO_SYNC_MODE);
+*/
+    rf12_sendNow(0, &payload, sizeof payload);
+    rf12_sendWait(RADIO_SYNC_MODE);
+    // konec spremembe
     rf12_sleep(RF12_SLEEP);
 
     #if SERIAL
