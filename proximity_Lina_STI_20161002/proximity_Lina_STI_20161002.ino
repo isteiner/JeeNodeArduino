@@ -120,7 +120,11 @@ void setup () {
             Serial.print('>');
         }
 
-    rf12_initialize(2, RF12_868MHZ, 1); // node=2, freq=868 Mhz, net group=1  
+    // node 1, 868 Mhz, net group 1 
+    // node 1, 868 Mhz, net group 2
+    // node 1, 868 Mhz, net group 3
+
+    rf12_initialize(1, RF12_868MHZ, 2); // node=1, freq=868 Mhz, net group=2  
     }
     sensor.read(1);
     sensor.stop();
