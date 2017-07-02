@@ -2,26 +2,54 @@
 
 #include <SPI.h>
 #include <RH_RF95.h>
+
+#define FREQ_CENTRE 868   // Centre frequency in MHz
+
 // Singleton instance of the radio driver
 RH_RF95 rf95;
-//RH_RF95 rf95(5, 2); // Rocket Scream Mini Ultra Pro with the RFM95W
-//RH_RF95 rf95(8, 3); // Adafruit Feather M0 with RFM95 
-// Need this on Arduino Zero with SerialUSB port (eg RocketScream Mini Ultra Pro)
-//#define Serial SerialUSB
+
 int led = 9;
 
 struct typePayload {
     int temp;         // temperature (tenths)
     uint8_t count;  // counter
+//    int test;
 } payload;
-
-//payload pl;
 
 union utypepayload{
     typePayload payload;
     uint8_t sendBuf[RH_RF95_MAX_MESSAGE_LEN]; 
 }upayload;
 
+static void showNibble (byte nibble) {
+    char c = '0' + (nibble & 0x0F);
+    if (c > '9')
+        c += 7;
+    Serial.print(c);
+}
+
+static void showByte (byte value) {
+    //if (config.hex_output) {
+    //    showNibble(value >> 4);
+    //    showNibble(value);
+    //} else
+        Serial.print((word) value);
+}
+
+static void printOneChar (char c) {
+    Serial.print(c);
+}
+
+static void showString (PGM_P s) {
+    for (;;) {
+        char c = pgm_read_byte(s++);
+        if (c == 0)
+            break;
+        if (c == '\n')
+            printOneChar('\r');
+        printOneChar(c);
+    }
+}
 void setup() 
 {
   pinMode(led, OUTPUT);    
@@ -39,6 +67,11 @@ void setup()
   // then you can configure the power transmitter power for -1 to 14 dBm and with useRFO true. 
   // Failure to do that will result in extremely low transmit powers.
 //  driver.setTxPower(14, true);
+  rf95.setFrequency(FREQ_CENTRE); // Sets the transmitter and receiver centre frequency
+  Serial.println("Registers: "); 
+  //Serial.println(rf95.mode(), HEX);
+  rf95.printRegisters();
+  Serial.println("=================================================");   
 }
 
 void loop()
@@ -47,13 +80,14 @@ void loop()
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
   uint8_t from;
-  
+    
   if (rf95.waitAvailableTimeout(3000))
   { 
     // Should be a message for us now   
     if (rf95.recv(upayload.sendBuf, &len))
     {
       from = rf95.headerFrom();
+ /*   Serial.println(len); 
       digitalWrite(led, LOW);    
       Serial.print("OK ");
       Serial.print(from);      
@@ -62,8 +96,23 @@ void loop()
       Serial.print(" ");      
       Serial.print(upayload.sendBuf[1]);
       Serial.print(" ");
-      Serial.println(upayload.sendBuf[2]);   
-
+      Serial.println(upayload.sendBuf[2]);  */
+      
+      // take it from RF12demo JeeLab
+      showString(PSTR("OK"));
+      printOneChar(' ');
+      showByte(from);
+      for (byte i = 0; i < len; ++i) {
+         printOneChar(' ');
+         showByte(upayload.sendBuf[i]);
+      }
+      // display RSSI value after packet data
+      showString(PSTR(" ("));
+      //Serial.print(-(RF69::rssi>>1));
+      Serial.print(rf95.lastRssi());        
+      showString(PSTR(") "));
+      Serial.println();      
+      
       /*
       Serial.print("got message: ");
       Serial.print(upayload.payload.temp, DEC);
