@@ -18,10 +18,10 @@
 #define SERIAL  0   // set to 1 to also report readings on the serial port
 #define DEBUG   0   // set to 1 to display each loop() run and PIR trigger
 
-// #define SHT11_PORT  1   // defined if SHT11 is connected to a port
+#define SHT11_PORT  0   // defined if SHT11 is connected to a port
 #define HYT131_PORT 1   // defined if HYT131 is connected to a port
 #define LDR_PORT    4   // defined if LDR is connected to a port's AIO pin
-#define PIR_PORT    4   // defined if PIR is connected to a port's DIO pin ORIG 4
+#define PIR_PORT    0   // defined if PIR is connected to a port's DIO pin ORIG 4
 
 #define MEASURE_PERIOD  600 // how often to measure, in tenths of seconds ORIG 600
 #define RETRY_PERIOD    10  // how soon to retry if ACK didn't come in
