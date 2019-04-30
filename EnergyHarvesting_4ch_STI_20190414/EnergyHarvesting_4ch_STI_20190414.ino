@@ -58,13 +58,14 @@ static void serialFlush () {
 }
 
 void setup () {
+/*
 #if SERIAL
     Serial.begin(57600);
     Serial.print("\n[EnergyHarvesting_4ch_STI_20190414]");  
     if (adc.isPresent()) 
       Serial.println("Analog Plug found");    
     serialFlush();  
-#endif
+#endif */
       
     cli();                    //cli clears the global interrupt flag in SREG so prevent any form of interrupt occurring. 
     // sets prescaler
@@ -75,6 +76,10 @@ void setup () {
     CLKPR = 1; // div 2, i.e. slow down to 8 MHz
     #if SERIAL
     Serial.begin(115200);   // actually is 57600 because of prescaler (div 2)
+    Serial.print("\n[EnergyHarvesting_4ch_STI_20190414]");  
+    if (adc.isPresent()) 
+      Serial.println("Analog Plug found");    
+    serialFlush();      
     #endif
 #endif
     sei();                    //sei sets the bit and switches interrupts on
@@ -96,20 +101,18 @@ void setup () {
 }
 
 void loop () {
-    
     for (byte i=1; i <= 4; ++i) {
       long val = AP2read(adc, i);
-      //val = val/64; // +- 2047 mV
       // calibrating values for CH1..CH4
       if (i == 1) val = val/13; // 0x1ffff/10020 = 13  CH1 = +- 10020 mV
-      if (i == 2) val = val/23; // 0x1ffff/5660  = 23  CH2 = +- 5660 mV
-      if (i == 3) val = val/23; // 0x1ffff/5660  = 23  CH3 = +- 5660 mV    
-      if (i == 4) val = val/23; // 0x1ffff/5660  = 23  CH4 = +- 5660 mV      
+      if (i == 2) val = val/24; // 0x1ffff/5660  = 23  CH2 = +- 5660 mV
+      if (i == 3) val = val/24; // 0x1ffff/5660  = 23  CH3 = +- 5660 mV    
+      if (i == 4) val = val/24; // 0x1ffff/5660  = 23  CH4 = +- 5660 mV      
       payload.AD_Channel[i-1] = (int)val; 
       #if SERIAL
         Serial.print(val);  
         Serial.print(' ');
-      #endif
+      #endif      
     }
 
     uint8_t PGVOUT = two.digiRead();
