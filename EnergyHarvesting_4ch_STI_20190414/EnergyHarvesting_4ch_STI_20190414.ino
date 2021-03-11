@@ -17,7 +17,7 @@
 #define ONE_WIRE_BUS 7
 
 #define SERIAL  0     // set to 1 to also report readings on the serial port
-#define SWITCH_LOAD 1 // set to 1 to manage discharging of battery
+#define SWITCH_LOAD 0 // set to 1 to manage discharging of battery
  
 PortI2C myI2C (1);
 AnalogPlug adc (myI2C, 0x68);
@@ -39,7 +39,8 @@ ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 struct {
     int AD_Channel[4];  // mVolts   
     int temperature;    // internal tempearture  
-    byte DIO;           // digital inputs     
+    //byte DIO;           // digital inputs    
+    byte counter = 0; 
 } payload;
 
 static void AP2init (DeviceI2C& dev, byte mode =0x1C) {
@@ -116,10 +117,10 @@ void loop () {
     for (byte i=1; i <= 4; ++i) {
       long val = AP2read(adc, i);
       // calibrating values for CH1..CH4
-      if (i == 1) val = val/13; // 0x1ffff/10020 = 13  CH1 = +- 10020 mV  AC1
-      if (i == 2) val = val/24; // 0x1ffff/5660  = 23  CH2 = +- 5660 mV   VBAT
-      if (i == 3) val = val/24; // 0x1ffff/5660  = 23  CH3 = +- 5660 mV   VOUT    
-      if (i == 4) val = val/24; // 0x1ffff/5660  = 23  CH4 = +- 5660 mV   ICHARGE   
+      if (i == 1) val = (float)val/12.630; // 58100/4600 = 12.630 calib.at 4.6V  CH1 = +- 10000 mV  AC1
+      if (i == 2) val = (float)val/12.500; // 50000/4000 = 12.500 calib.at 4.0V  CH2 = +- 10000 mV  VBAT
+      if (i == 3) val = (float)val/12.303; // 40600/3300 = 12.303 calib.at 3.3V  CH3 = +- 10000 mV  VOUT    
+      if (i == 4) val = (float)val/64.400; // 64400/1000 = 64.400 calib.at 1.0V  CH4 = +- 2048  mV  ICHARGE   
       payload.AD_Channel[i-1] = (int)val; 
       #if SERIAL
         Serial.print(val);  
@@ -141,13 +142,13 @@ void loop () {
         payload.DIO |= 0x04;
         digitalWrite(9, LOW);  // switch LED on if Vbat > 4000 mV (invert/pullup)      
       }
-      if (payload.AD_Channel[1] < 3700) 
+      if (payload.AD_Channel[1] < 3800) 
       {
         payload.DIO &= 0xFB;
         digitalWrite(9, HIGH);  // switch LED off if Vbat < 3700 mV (invert/pullup)              
       }       
     #endif 
-        
+/*        
     uint8_t PGVOUT = two.digiRead();
     uint8_t EHOUT = three.digiRead();
 
@@ -162,13 +163,18 @@ void loop () {
       Serial.println();
       serialFlush();
     #endif  
+*/
 
-    rf12_sendNow(0, &payload, sizeof payload);
-    // set the sync mode to 2 if the fuses are still the Arduino default
-    // mode 3 (full powerdown) can only be used with 258 CK startup fuses
-    rf12_sendWait(2);
+    if (payload.AD_Channel[1] > 3700) // transmit if Vbat > 3.700 V
+    {
+      rf12_sendNow(0, &payload, sizeof payload);
+      // set the sync mode to 2 if the fuses are still the Arduino default
+      // mode 3 (full powerdown) can only be used with 258 CK startup fuses
+      rf12_sendWait(2);      
+    }
     
     rf12_sleep(RF12_SLEEP);
-    Sleepy::loseSomeTime(60000);
+    for (byte i=0; i < 10; ++i) Sleepy::loseSomeTime(60000);  // sleep for 60 sec * n
     rf12_sleep(RF12_WAKEUP); 
+    payload.counter++;
 }

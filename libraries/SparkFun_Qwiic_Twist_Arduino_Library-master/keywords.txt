@@ -1,0 +1,52 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+TWIST	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+isConnected	KEYWORD2
+getCount	KEYWORD2
+setCount	KEYWORD2
+getDiff	KEYWORD2
+isMoved	KEYWORD2
+isPressed	KEYWORD2
+isClicked	KEYWORD2
+timeSinceLastMovement	KEYWORD2
+timeSinceLastPress	KEYWORD2
+clearInterrupts	KEYWORD2
+setColor	KEYWORD2
+setRed	KEYWORD2
+setGreen	KEYWORD2
+setBlue	KEYWORD2
+getRed	KEYWORD2
+getGreen	KEYWORD2
+getBlue	KEYWORD2
+connectColor	KEYWORD2
+connectRed	KEYWORD2
+connectGreen	KEYWORD2
+connectBlue	KEYWORD2
+getRedConnect	KEYWORD2
+getGreenConnect	KEYWORD2
+getBlueConnect	KEYWORD2
+getIntTimeout	KEYWORD2
+setIntTimeout	KEYWORD2
+getVersion	KEYWORD2
+changeAddress	KEYWORD2
+
+setLimit	KEYWORD2
+getLimit	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+

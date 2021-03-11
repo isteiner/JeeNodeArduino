@@ -34,15 +34,18 @@
 SSD1306Wire  display(0x3c, 5, 4); //5,4  21,22
 
 // Update these with values suitable for your network.
-const char* ssid = "Linksys02327";
+//const char* ssid = "Linksys02327";
+const char* ssid = "LinksysExt2";
 const char* password = "dvq7vjxucz";
-const char* mqtt_server = "iot.eclipse.org";
+//const char* mqtt_server = "iot.eclipse.org";
+const char* mqtt_server = "10.146.223.20";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
+char str[10];
 
 void setup_wifi() {
 
@@ -103,13 +106,15 @@ void reconnect() {
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
     // Attempt to connect
-    if (client.connect(clientId.c_str())) {
+    //if (client.connect(clientId.c_str())) {
+    if (client.connect("ESP32client", "emonpi", "emonpimqtt2016")) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      //client.publish("outTopic", "hello world");
+      sprintf(str, "%d", value);
+      client.publish("emon/ESP32/outTopic", str);
       // ... and resubscribe
       //client.subscribe("inTopic");
-      client.subscribe("STI/TotalPower");      
+      client.subscribe("emon/ESP32/inTopic");      
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -268,12 +273,14 @@ void loop() {
   client.loop();
 
   long now = millis();
-  if (now - lastMsg > 2000) {
+  if (now - lastMsg > 5000) {
     lastMsg = now;
     ++value;
-    //snprintf (msg, 75, "hello world #%ld", value);
-    //Serial.print("Publish message: ");
-    //Serial.println(msg);
+    //snprintf (msg, 75, "#%ld", value);
+    Serial.print("Publish message: ");
+    Serial.println(value);
+    sprintf(str, "%d", value);
+    client.publish("emon/ESP32/outTopic", str);
     //client.publish("outTopic", msg);
   }
 }
