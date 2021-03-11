@@ -114,7 +114,7 @@ void setup () {
         bitClear(PORTB, 0);
     #endif
 
-  rf12_initialize(7, RF12_868MHZ, 212); //id = 7; group = 212
+  rf12_initialize(16, RF12_868MHZ, 210); //id = 16; group = 210
   // see http://tools.jeelabs.org/rfm12b
   rf12_control(0xC040); // set low-battery level to 2.2V i.s.o. 3.1V
   //rf12_sleep(RF12_SLEEP);
